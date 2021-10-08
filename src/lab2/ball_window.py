@@ -4,7 +4,7 @@ from lab2.utils import get_random_number_generator
 
 
 class BallWindow:
-    """Creates a window of circular shape"""
+    """Creates a window of ball shape"""
 
     # ? circular shape => ball shape
     def __init__(self, center, radius):
