@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from lab2.ball_window import BallWindow
+from sdia_python.lab2.ball_window import BallWindow
 
 
 def test_raise_type_error_when_something_is_called():
@@ -80,9 +80,8 @@ def test_indicator_ball_2d(ball_2d, point, expected):
 @pytest.mark.parametrize(
     "center, radius, expected",
     [
-        (np.array([0, 0]), 5, True),
+        (np.array([2, 3]), 5, True),
         (np.array([1]), 3, True),
-        (np.array([0, 0, 3]), 1, True),
     ],
 )
 def test_rand(center, radius, expected):
