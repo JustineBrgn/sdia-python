@@ -4,86 +4,106 @@ import pytest
 from sdia_python.lab2.ball_window import BallWindow
 
 
-def test_raise_type_error_when_something_is_called():
-    with pytest.raises(TypeError):
-        # call_something_that_raises_TypeError()
-        raise TypeError()
-
-
-# checks if the dimension of the ball window is correct
-@pytest.mark.parametrize(
-    "center, expected",
-    [
-        (np.array([0, 5]), 2),
-        (np.array([2.5]), 1),
-        (np.array([0, 5, 6]), 3),
-    ],
-)
-def test_dimension(center, expected):
-    c = BallWindow(center, 6)
-    assert c.dimension() == expected
-
-
-# checks if the volume of the ball window is correct
 @pytest.mark.parametrize(
     "center, radius, expected",
     [
-        (np.array([0, 5]), 2, np.pi * 4),
-        (np.array([2.5]), 3, 6),
-        (np.array([0, 5, 6]), 2, (4 / 3) * np.pi * 2 ** 3),
+        (np.array([0]), 4, 4),
+        (np.array([2.5, 2.5]), 3.7, 3.7),
+        (np.array([-1, 5]), 2.0, 2.0),
+        (np.array([10, 3]), 20000, 20000),
     ],
 )
-def test_volume(center, radius, expected):
-    c = BallWindow(center, radius)
-    assert c.volume() == expected
-
-
-# checks if, for the ball_2d, the point is in the ball window
-@pytest.fixture
-def ball_2d():
-    return BallWindow(np.array([0, 0]), 5)
+def test_radius(center, radius, expected):
+    ball = BallWindow(center, radius)
+    assert ball.radius == expected
 
 
 @pytest.mark.parametrize(
-    "point, expected",
+    "box, expected",
     [
-        (np.array([0, 0]), True),
-        (np.array([2.5, 2.5]), True),
-        (np.array([10, 3]), False),
+        (np.array([1]), 1),
+        (np.array([1, 2.2]), 2),
+        (np.array([1.4, 2.6, 3.9]), 3),
     ],
 )
-def test_contains_ball_2d(ball_2d, point, expected):
-    is_in = ball_2d.__contains__(point)
-    assert is_in == expected
+def test_dimension_box(box, expected):
+    ball = BallWindow(box, 4)
+    assert ball.dimension() == expected
 
 
-# checks if for the ball_2d, the point is in the ball window. Returns 1 if it is the case, 0 otherwise.
-@pytest.fixture
-def ball_2d():
-    return BallWindow(np.array([0, 0]), 5)
-
-
+# ? ball or center
+# ! tests pass but on a wrong implementation
 @pytest.mark.parametrize(
-    "point, expected",
+    "ball, radius, expected",
     [
-        (np.array([0, 0]), 1),
-        (np.array([2.5, 2.5]), 1),
-        (np.array([10, 3]), 0),
+        (np.array([1]), 2, 4),
+        (np.array([1, 3]), 3, 36),
+        (np.array([1.4, 2.6, 3.9]), 2.5, 125.0),
     ],
 )
-def test_indicator_ball_2d(ball_2d, point, expected):
-    is_in = ball_2d.__contains__(point)
-    assert is_in == expected
+def test_volume_box(ball, radius, expected):
+    ball = BallWindow(ball, radius)
+    assert ball.volume() == expected
 
 
-# checks if the point(s) taken randomly is in the ball window
-@pytest.mark.parametrize(
-    "center, radius, expected",
-    [
-        (np.array([2, 3]), 5, True),
-        (np.array([1]), 3, True),
-    ],
-)
-def test_rand(center, radius, expected):
-    c = BallWindow(center, radius)
-    assert c.__contains__(c.rand(1)[0]) == expected
+def test_contains_oneDimension():
+    ball1 = BallWindow(np.array([1]), 3)
+    ball2 = BallWindow(np.array([3.5]), 0.5)
+    ball3 = BallWindow(np.array([-2.5]), 1.5)
+    ball4 = BallWindow(np.array([0]), 2)
+    assert ball1.__contains__(np.array([2]))
+    assert not ball1.__contains__(np.array([5]))
+    assert ball2.__contains__(np.array([4]))
+    assert not ball2.__contains__(np.array([4.01]))
+    assert ball3.__contains__(np.array([-3.9]))
+    assert ball4.__contains__(np.array([0]))
+    assert not ball4.__contains__(np.array([2.02]))
+
+
+def test_contains_twoDimension():
+    ball1 = BallWindow(np.array([0, 0]), 1)
+    ball2 = BallWindow(np.array([3.5, 2.5]), 0.5)
+    assert ball1.__contains__(np.array([0.5, 0.5]))
+    assert not ball1.__contains__(np.array([1, 2]))
+    assert ball2.__contains__(np.array([3.25, 2.75]))
+
+
+def test_indicator_function_oneDimension():
+    ball1 = BallWindow(np.array([1]), 3)
+    ball2 = BallWindow(np.array([3.5]), 0.5)
+    ball3 = BallWindow(np.array([-2.5]), 1.5)
+    ball4 = BallWindow(np.array([0]), 2)
+    assert ball1.indicator_function(np.array([2]))
+    assert not ball1.indicator_function(np.array([5]))
+    assert ball2.indicator_function(np.array([4]))
+    assert not ball2.indicator_function(np.array([4.01]))
+    assert ball3.indicator_function(np.array([-3.9]))
+    assert ball4.indicator_function(np.array([0]))
+    assert not ball4.indicator_function(np.array([2.02]))
+
+
+def test_indicator_function_twoDimension():
+    ball1 = BallWindow(np.array([0, 0]), 1)
+    ball2 = BallWindow(np.array([3.5, 2.5]), 0.5)
+    assert ball1.indicator_function(np.array([0.5, 0.5]))
+    assert not ball1.indicator_function(np.array([1, 2]))
+    assert ball2.indicator_function(np.array([3.25, 2.75]))
+
+
+# ? does this raise a TypeError or an AssertionError
+def test_raise_assertion_error_when_points_is_not_of_good_dimension():
+    with pytest.raises(AssertionError):
+        ball1 = BallWindow(np.array([0, 0]), 1)
+        np.array([1, 2, 3]) in ball1
+
+
+# def test_rand_onepoint_onedimension():
+#    ball = BallWindow(np.array([1, 2]), 3)
+#   assert ball.__contains__(ball.rand()[0])
+
+
+def test_rand_multiplepoint_3dimension():
+    ball = BallWindow(np.array([1, 15.5, 3.5]), 2)
+    coord = ball.rand(100)
+    for value in coord:
+        assert ball.__contains__(value)

@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+import unittest
 
 from sdia_python.lab2.box_window import BoxWindow, UnitBoxWindow
 
@@ -62,13 +63,18 @@ def test_init(bounds, expected):
     assert c.bounds.shape == expected
 
 
+def test_bad_init():
+    with pytest.raises(ValueError):
+        BoxWindow(np.array([[0, 5], [-1.45, 3.14], [10, -10]])).__init__()
+
+
 # checks the evaluation of the length of each bound is correct.
 @pytest.mark.parametrize(
     "bounds, expected",
     [
         (np.array([[0, 5], [0, 5]]), np.array([5, 5])),
         (np.array([[2.5, 2.5]]), np.array([0])),
-        (np.array([[0, 5], [-1.45, 3.14], [-10, 10]]), np.array([5.0, 4.59, 20.0])),
+        (np.array([[0, 5], [-1.45, 3.14], [-10, 10]]), np.array([5, 4.59, 20])),
     ],
 )
 def test_length(bounds, expected):
@@ -108,6 +114,11 @@ def box_2d_05():
 def test_contains(box_2d_05, point, expected):
     is_in = box_2d_05.__contains__(point)
     assert is_in == expected
+
+
+def test_bad_contains(box_2d_05):
+    with pytest.raises(ValueError):
+        box_2d_05.__contains__(np.array([1, 1, 1]))
 
 
 # checks if the dimension of the box window is correct
@@ -158,6 +169,26 @@ def test_indicator_function(box_2d_05, point, expected):
     assert is_in == expected
 
 
+# checks if the multiple indicator function returns 1 if all the points are in the box, 0 otherwise
+@pytest.fixture
+def box_2d_05():
+    return BoxWindow(np.array([[0, 5], [0, 5]]))
+
+
+@pytest.mark.parametrize(
+    "point, expected",
+    [
+        (np.array([[1, 1], [2, 0.5]]), 1),
+        (np.array([2.5, 2.5]), 1),
+        (np.array([[-1, 5], [33, 9], [0, 0]]), 0),
+        (np.array([[10, 3], [1, 1]]), 0),
+    ],
+)
+def test_mutliple_indicator_function(box_2d_05, point, expected):
+    is_in = box_2d_05.multiple_indicator_function(point)
+    assert is_in == expected
+
+
 # checks if the point taken randomly is in the box
 @pytest.mark.parametrize(
     "bounds, expected",
@@ -184,3 +215,8 @@ def test_rand(bounds, expected):
 def test_UnitBoxWindow_init(center, dimension, expected):
     d = UnitBoxWindow(center, dimension)
     assert np.all(d.length() == expected)
+
+
+def test_bad_UnitBoxWindow_init(box_2d_05):
+    with pytest.raises(ValueError):
+        UnitBoxWindow(np.array([2, 3]), 3).__init__()

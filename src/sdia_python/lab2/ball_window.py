@@ -6,7 +6,6 @@ from sdia_python.lab2.utils import get_random_number_generator
 class BallWindow:
     """Creates a window of ball shape"""
 
-    # ? circular shape => ball shape
     def __init__(self, center, radius):
         """Initialize the ball window with the center point and the radius .
 
@@ -23,8 +22,7 @@ class BallWindow:
         Returns:
             integer : dimension of the ball window
         """
-        # ? how about .size
-        return self.center.shape[0]
+        return self.center.shape[1]
 
     def volume(self):
         """Returns the volume created by the ball window
@@ -32,12 +30,12 @@ class BallWindow:
         Returns:
             integer : volume of the ball
         """
-        # ! duplicate code, define a temporary variable = self.dimension()
-        if self.dimension() == 1:
+        dim = self.dimension()
+        if dim == 1:
             return 2 * self.radius
-        if self.dimension() == 2:
+        if dim == 2:
             return np.pi * self.radius ** 2
-        if self.dimension() == 3:
+        if dim == 3:
             return (4 / 3) * np.pi * self.radius ** 3
         raise Exception("dimension too high")
 
@@ -48,9 +46,10 @@ class BallWindow:
         Args:
             point (array): coordinates of the point that we want to know if it is part of the ball.
         """
-        # * isolate exception from body of the method
         if point.shape != self.center.shape:
-            raise Exception("incorrect size of the point")
+            raise ValueError(
+                "the dimension of the point should be the same as the dimension of the center"
+            )
 
         N = np.linalg.norm(point - self.center)
         return np.all(N <= self.radius)
@@ -61,8 +60,7 @@ class BallWindow:
         Args:
             point (array): coordinates of the point
         """
-        # todo same comments as in BoxWindow.indicator_function
-        return int(self.__contains__(point))
+        return 1 if point in self else 0
 
     def rand(self, n=1, rng=None):
         """Generate ``n`` points uniformly at random inside the :py:class:`BallWindow`.
@@ -72,14 +70,21 @@ class BallWindow:
             rng ([type], optional): [description]. Defaults to None.
         """
         rng = get_random_number_generator(rng)
-
-        # todo same comments as in BoxWindow.indicator_function
         L = []
         for p in range(n):  # nb of points taken randomly in the box
             L.append(
-                [
-                    np.random.uniform(a - self.radius, a + self.radius)
-                    for a in self.center
-                ]
+                [rng.uniform(a - self.radius, a + self.radius) for a in self.center]
             )
         return np.array(L)
+
+
+class UnitBallWindow(BallWindow):
+    def __init__(self, center):
+        """Initialize unitary ball window given an array for the center point(s) and the radius will be 1.
+
+        Args:
+            center (np.array()): represents the point of the center of the ball window. Its shape is (1,n) with n the dimension of the unitary ball window
+            Defaults to None.
+        """
+        self.center = center
+        super(UnitBallWindow, self).__init__(center, 1)

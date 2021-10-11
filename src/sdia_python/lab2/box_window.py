@@ -16,8 +16,9 @@ class BoxWindow:
         if np.all(np.diff(args) >= 0):  # checks if a<=b for each segment
             self.bounds = args
         else:
-            # ! raise a more concrete exception https://docs.python.org/3/library/exceptions.html#concrete-exceptions
-            raise Exception("incorrect bounds")
+            raise ValueError(
+                "the bounding points should be of the form [a,b] with a<=b"
+            )
 
     def __str__(self):
         r"""BoxWindow: :math:`[a_1, b_1] \times [a_2, b_2] \times \cdots`
@@ -31,9 +32,10 @@ class BoxWindow:
             return int_w if int_w == w else w
 
         mot = ""
-        # ! use f-strings
         for a, b in self.bounds:
-            mot = mot + str([remove_zero(a), remove_zero(b)]) + " x "
+            bound_inf = remove_zero(a)
+            bound_sup = remove_zero(b)
+            mot = mot + f"[{bound_inf}, {bound_sup}]" + " x "
         return "BoxWindow: " + mot[:-3]  # mot[:-3] to remove the last " x "
 
     def length(self):
@@ -43,7 +45,6 @@ class BoxWindow:
             array : array of the length in each direction
         """
         a, b = self.bounds[:, 0], self.bounds[:, 1]
-        # ? how about np.diff
         return b - a
 
     def __len__(self):
@@ -62,13 +63,13 @@ class BoxWindow:
         Args:
             point (array): coordinates of the point that we want to know if it is part of the box.
         """
-        # ? use .ndim and .size
-        if point.shape == (self.dimension(),):
+        if point.T.shape[0] == self.dimension():
             a, b = self.bounds[:, 0], self.bounds[:, 1]
             return np.all(a <= point) and np.all(point <= b)
         else:
-            # ! raise a more concrete exception https://docs.python.org/3/library/exceptions.html#concrete-exceptions
-            raise Exception("incorrect size of the point")
+            raise ValueError(
+                "the dimension of the point should be the same as the dimension of the box window."
+            )
 
     def dimension(self):
         """Returns the dimension of the box window
@@ -92,9 +93,15 @@ class BoxWindow:
         Args:
             point (array): coordinates of the point
         """
-        # ? how would you handle multiple points
-        # ! use "point in self"
-        return int(self.__contains__(point))
+        return 1 if point in self else 0
+
+    def multiple_indicator_function(self, points):
+        """Indicator function of the box window for multiple points. Returns 1 if all the points are in the box, returns 0 otherwise.
+
+        Args:
+            point (array): coordinates of the points
+        """
+        return 1 if np.all(points in self) else 0
 
     def rand(self, n=1, rng=None):
         """Generate ``n`` points uniformly at random inside the :py:class:`BoxWindow`.
@@ -104,13 +111,9 @@ class BoxWindow:
             rng ([type], optional): [description]. Defaults to None.
         """
         rng = get_random_number_generator(rng)
-
         L = []
-        # * convention: use _ for unused counters
-        # * exploit numpy, rng.uniform(a, b, size=)
         for p in range(n):  # nb of points taken randomly in the box
-            # ! use rng
-            L.append([np.random.uniform(a, b) for (a, b) in self.bounds])
+            L.append([rng.uniform(a, b) for (a, b) in self.bounds])
         return np.array(L)
 
 
@@ -124,7 +127,9 @@ class UnitBoxWindow(BoxWindow):
             center (np.array()): Each element of the array is the center of one segment of the box. The array is of the shape (dimension,). Defaults to None.
         """
         if (dimension,) != center.shape:
-            raise Exception("incorrect dimension or incorrect center")
+            raise ValueError(
+                "the dimension of the unit box window and the dimension of the center should be the same"
+            )
         else:
             self.center = center
             self.dimension = dimension
