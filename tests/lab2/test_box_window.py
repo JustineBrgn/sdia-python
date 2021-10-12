@@ -11,6 +11,7 @@ def test_raise_type_error_when_something_is_called():
         raise TypeError()
 
 
+#checks the str function for the box_window
 @pytest.mark.parametrize(
     "bounds, expected",
     [
@@ -26,6 +27,7 @@ def test_box_string_representation(bounds, expected):
     assert str(BoxWindow(bounds)) == expected
 
 
+#checks if the indicator function is well defined for dimension=2
 @pytest.fixture
 def box_2d_05():
     return BoxWindow(np.array([[0, 5], [0, 5]]))
@@ -116,6 +118,7 @@ def test_contains(box_2d_05, point, expected):
     assert is_in == expected
 
 
+#error test
 def test_bad_contains(box_2d_05):
     with pytest.raises(ValueError):
         box_2d_05.__contains__(np.array([1, 1, 1]))
@@ -212,11 +215,12 @@ def test_rand(bounds, expected):
         (np.array([0]), 1, [1.0]),
     ],
 )
+
 def test_UnitBoxWindow_init(center, dimension, expected):
     d = UnitBoxWindow(center, dimension)
     assert np.all(d.length() == expected)
 
-
-def test_bad_UnitBoxWindow_init(box_2d_05):
+#error test
+def test_bad_UnitBoxWindow_init():
     with pytest.raises(ValueError):
         UnitBoxWindow(np.array([2, 3]), 3).__init__()

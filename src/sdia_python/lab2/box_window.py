@@ -3,7 +3,6 @@ import numpy as np
 from sdia_python.lab2.utils import get_random_number_generator
 
 
-# todo test your exceptions
 class BoxWindow:
     """Creates a window of rectangular shape"""
 

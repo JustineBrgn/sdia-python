@@ -22,7 +22,7 @@ class BallWindow:
         Returns:
             integer : dimension of the ball window
         """
-        return self.center.shape[1]
+        return self.center.size
 
     def volume(self):
         """Returns the volume created by the ball window
@@ -50,7 +50,6 @@ class BallWindow:
             raise ValueError(
                 "the dimension of the point should be the same as the dimension of the center"
             )
-
         N = np.linalg.norm(point - self.center)
         return np.all(N <= self.radius)
 
@@ -71,10 +70,10 @@ class BallWindow:
         """
         rng = get_random_number_generator(rng)
         L = []
-        for p in range(n):  # nb of points taken randomly in the box
-            L.append(
-                [rng.uniform(a - self.radius, a + self.radius) for a in self.center]
-            )
+        while len(L) < n:  # nb of points taken randomly in the box
+            point = rng.uniform(self.center - self.radius, self.center + self.radius)
+            if np.linalg.norm(self.center - point) <= self.radius:
+                L.append(point)
         return np.array(L)
 
 
